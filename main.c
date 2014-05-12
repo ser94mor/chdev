@@ -325,9 +325,8 @@ static void chdev_remove_proc(void) {
 static ssize_t chdev_read_proc(struct file *filp, char __user *buf, size_t count, loff_t *f_pos) {
   	/* update the following definition in case of adding or removing chdevstat lines (current number of lines in chdevstat == 2) */
 #define CHDEVSTAT_BUF_SIZE         (2 * 34 + 1)
-	struct chdev_dev *dev                           = filp->private_data; 
 	ssize_t          retval                         = 0;                       /* 0 because initially we haven't read nothing */
-	char             chdevstat[CHDEVSTAT_BUF_SIZE * 2];                            /* internal buffer to build the output string */
+	char             chdevstat[CHDEVSTAT_BUF_SIZE];                            /* internal buffer to build the output string */
 	if (count >= CHDEVSTAT_BUF_SIZE) {
 		count = CHDEVSTAT_BUF_SIZE;
 	}
@@ -336,7 +335,7 @@ static ssize_t chdev_read_proc(struct file *filp, char __user *buf, size_t count
 	}
 #undef  CHDEVSTAT_BUF_SIZE
 	
-	if (down_interruptible(&dev->sem)) {
+	if (down_interruptible(&chdev->sem)) {
 		return -ERESTARTSYS;
 	}
 
@@ -352,7 +351,7 @@ static ssize_t chdev_read_proc(struct file *filp, char __user *buf, size_t count
 	retval = count;
 	
   out:
-	up(&dev->sem);
+	up(&chdev->sem);
 	return retval;
 }
 
