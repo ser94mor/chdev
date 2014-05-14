@@ -16,6 +16,7 @@
 #include <linux/moduleparam.h>
 #include <linux/stat.h>
 #include <linux/proc_fs.h>
+#include <linux/seq_file.h>
 #include <asm/uaccess.h>
 
 #include "chdev.h"
@@ -31,9 +32,10 @@ static int             chdev_open(struct inode *inode, struct file *filp);
 static int             chdev_release(struct inode *inode, struct file *filp);
 static ssize_t         chdev_read(struct file *filp, char __user *buf, size_t count, loff_t *f_pos);
 static ssize_t         chdev_write(struct file *filp, const char __user *buf, size_t count, loff_t *f_pos);
-static void            chdev_create_proc(void);
+static void __init     chdev_create_proc(void);
 static void            chdev_remove_proc(void);
-static ssize_t         chdev_read_proc(struct file *filp, char __user *buf, size_t count, loff_t *f_pos);
+static int             chdev_proc_open(struct inode *inode, struct file *filp);
+static int             chdev_proc_show(struct seq_file *s, void *v);
 
 /*
  * Declaration of variables.
@@ -52,7 +54,10 @@ static struct file_operations chdev_fops    = {
 };
 static struct file_operations chdev_proc_ops = {
 	.owner   = THIS_MODULE,
-	.read    = chdev_read_proc,
+	.open    = chdev_proc_open,
+	.read    = seq_read,
+	.llseek  = seq_lseek,
+	.release = single_release,
 };
 
 /*
@@ -310,8 +315,8 @@ static ssize_t chdev_write(struct file *filp, const char __user *buf, size_t cou
 /*
  * Create "chdevstat" file in /proc file system.
  */
-static void chdev_create_proc(void) {
-	proc_create("chdevstat", 0, NULL, &chdev_proc_ops);
+static void __init chdev_create_proc(void) {
+	proc_create("chdev", 0, NULL, &chdev_proc_ops);
 }
 
 /*
@@ -319,40 +324,25 @@ static void chdev_create_proc(void) {
  */
 static void chdev_remove_proc(void) {
 	/* no problem if it was not registered */
-	remove_proc_entry("chdevstat", NULL /* parent dir */);
+	remove_proc_entry("chdev", NULL /* parent dir */);
 }
 
-static ssize_t chdev_read_proc(struct file *filp, char __user *buf, size_t count, loff_t *f_pos) {
-  	/* update the following definition in case of adding or removing chdevstat lines (current number of lines in chdevstat == 2) */
-#define CHDEVSTAT_BUF_SIZE         (2 * 34 + 1)
-	ssize_t          retval                         = 0;                       /* 0 because initially we haven't read nothing */
-	char             chdevstat[CHDEVSTAT_BUF_SIZE];                            /* internal buffer to build the output string */
-	if (count >= CHDEVSTAT_BUF_SIZE) {
-		count = CHDEVSTAT_BUF_SIZE;
-	}
-	else {
-		return -ENOMEM;
-	}
-#undef  CHDEVSTAT_BUF_SIZE
-	
-	if (down_interruptible(&chdev->sem)) {
-		return -ERESTARTSYS;
-	}
+/*
+ * Implementation of file_operations.open for chdev_proc_ops.
+ */
+static int chdev_proc_open(struct inode *inode, struct file *filp) {
+	return single_open(filp, chdev_proc_show, NULL);
+}
 
-	sprintf(chdevstat,
-		"%-20.20s : %10u\n"
-	        "%-20.20s : %10u\n",
-	        "Buffer size",  chdev->buf_size,
-	        "Item counter", chdev->num_item);
-	if (copy_to_user(buf, chdevstat, count)) { 
-		retval = -EFAULT;
-		goto out;
-	}
-	retval = count;
-	
-  out:
-	up(&chdev->sem);
-	return retval;
+/*
+ * Implementation of show method for /proc file system
+ */
+static int chdev_proc_show(struct seq_file *s, void *v) {
+	seq_printf(s, "%-20.20s : %10u\n"
+	              "%-20.20s : %10u\n",
+	              "Buffer size",  chdev->buf_size,
+	              "Item counter", chdev->num_item);
+	return 0;
 }
 
 /*
