@@ -23,6 +23,6 @@ struct chdev_dev {
 	char             *end;                      /* pointer to the current end of the buffer */
 	bool             inv;                       /* indicator of beg and end positions ([--beg--end--]:false, [--end--beg--]:true, [beg == end]:false) */
 	uint             num_item;                  /* number of items in the buffer at the current time point */
-	struct semaphore sem;                       /* mutual exclusion semaphore  */
+	struct semaphore sem;                       /* mutual exclusion semaphore */
 	struct cdev      cdev;	                    /* chdev structure */
 };
