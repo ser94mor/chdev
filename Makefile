@@ -1,6 +1,6 @@
 # If KERNELRELEASE is defined, we've been invoked# kernel build system and can use its language.
 ifneq ($(KERNELRELEASE),)
-	obj-m += main.o
+	obj-m += chdev.o
 	chdev-objs = main.o
 else
 	KERNELDIR ?=  /lib/modules/$(shell uname -r)/build
