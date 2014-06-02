@@ -1,3 +1,11 @@
+/* 
+ * Copyright (C) 2014 Sergey Morozov
+ * 
+ * The source code in this file can be freely used, adapted,
+ * and redistributed in source or binary form, so long as an
+ * acknowledgment appears in derived source files.
+ */
+
 /*
  * Definitions for ioctl().
  */
@@ -9,7 +17,7 @@
 #define CHDEV_IOCTL_MAXNR           4 
 
 /*
- * Definition of shared structures.
+ * Definitions of shared structures.
  */
 struct chdev_item {
     char  *buf; /* item buffer */

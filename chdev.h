@@ -9,12 +9,12 @@
 #include <linux/types.h>
 
 /*
- * Definition of constants.
+ * Definitions of constants.
  */
 #define BUF_5KB          5120
 
 /*
- * Definition of structures.
+ * Definitions of structures.
  */
 struct chdev_dev {
 	char             *buf;	                    /* chdev circular buffer, item size are stored in first sizeof(short) bytes */        
@@ -26,3 +26,9 @@ struct chdev_dev {
 	struct semaphore sem;                       /* mutual exclusion semaphore */
 	struct cdev      cdev;	                    /* chdev structure */
 };
+
+/*
+ * Declarations of shared functions.
+ */
+ssize_t         chdev_read_common(struct chdev_dev *, char __user *, size_t);
+ssize_t         chdev_write_common(struct chdev_dev *, const char __user *, size_t);
