@@ -13,7 +13,7 @@ fi
 
 # invoke insmod with all arguments we got
 # and use a pathname, as insmod doesn't look in . by default
-/sbin/insmod ./$module.ko buffer=5120 || exit 1
+/sbin/insmod ./bin/$module.ko buffer=5120 || exit 1
 
 #remove stale nodes
 rm -f /dev/${device}
