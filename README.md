@@ -1,6 +1,6 @@
 chdev
 =====
-**Linux character device driver**. The driver allows you to work with the fixed size circular buffer. chdev stores items which, for example, could be strings or any other sort of information presented as a sequence of bits. Despite the fact that the driver was written for educational purposes, many useful aspects of Linux device drivers programming was touched:
+**Linux character device driver**. The driver allows you to work with the fixed size circular buffer. *chdev* stores items which, for example, could be strings or any other sort of information presented as a sequence of bits. Despite the fact that the driver was written for educational purposes, many useful aspects of Linux device drivers programming was touched:
 
 * dynamic major
 * ioctl
