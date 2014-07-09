@@ -7,21 +7,19 @@ SRCDIR  := src
 OBJDIR  := obj
 BINDIR  := bin
 
-#Module variables
-EXTRA_CFLAGS := -I$(src)/$(INCDIR)
+#Compiler variables
+subdir-ccflags-y := -I$(src)/$(INCDIR)
+CPPCC             = g++
+CPPCFLAGS         = -std=c++11 -I$(INCDIR)
 
 #Application variables
-APPCC         = g++
-APPCFLAGS     = -std=c++11 -I$(INCDIR)
-APPTESTSRC   := $(SRCDIR)/chdev_test.cpp
+CPPTESTSRCS  := $(wildcard $(SRCDIR)/*.cpp)
 
 #Invokes kbuild system in case KERNELRELEASE was defined
 ifneq ($(KERNELRELEASE),)
-	obj-m               := $(MODULENAME).o
-	$(MODULENAME)-objs  := $(SRCDIR)/chdev_main.o   \
-	                       $(SRCDIR)/chdev_shared.o
+	obj-m     += $(OBJDIR)/
 else
-	KERNELDIR ?=  /lib/modules/$(shell uname -r)/build
+	KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 	PWD       := $(shell pwd)
 	
 #Module and applications will be compiled
@@ -30,29 +28,24 @@ default: module app
 #Only module will be compiled
 module: | $(OBJDIR) $(BINDIR)
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
-	@cp chdev.ko           bin/chdev.ko
-	@mv chdev.ko           obj/chdev.ko
-	@mv chdev.mod.c        obj/chdev.mod.c
-	@mv chdev.mod.o        obj/chdev.mod.o
-	@mv chdev.o            obj/chdev.o
-	@mv Module.symvers     obj/Module.symvers
-	@mv modules.order      obj/modules.order
-	@mv src/chdev_main.o   obj/chdev_main.o
-	@mv src/chdev_shared.o obj/chdev_shared.o
-	@mv src/.tmp_versions  obj/.tmp_versions
+	@cp $(OBJDIR)/$(MODULENAME).ko $(BINDIR)/$(MODULENAME).ko
 	
 #Only applications will be compiled
 app:    | $(OBJDIR) $(BINDIR)
-	$(APPCC) $(APPCFLAGS) $(APPTESTSRC) -o $(BINDIR)/test_chdev
+	$(CPPCC) $(CPPCFLAGS) $(CPPTESTSRCS) -o $(BINDIR)/test_chdev
 
 #Creates dirrectory for objects
 $(OBJDIR):
-	@mkdir -p $(OBJDIR)
-	
+	@cp -ar $(SRCDIR) $(OBJDIR)
+	@rm -f $(OBJDIR)/chdev_test.cpp
+	@touch $(OBJDIR)/Makefile
+	@echo 'obj-m += $(MODULENAME).o'                           >> $(OBJDIR)/Makefile
+	@echo '$(MODULENAME)-objs := chdev_main.o chdev_shared.o'  >> $(OBJDIR)/Makefile
+
 #Creates dirrectory for binary files
 $(BINDIR):
 	@mkdir -p $(BINDIR)
-	
+
 endif
 
 load:
